@@ -51,6 +51,25 @@ npm run build
 npm run preview
 ```
 
+## Deployment
+
+This project includes a GitHub Actions workflow that automatically:
+- Builds the site on every push to `main` and pull requests
+- Deploys the built site to GitHub Pages when changes are pushed to `main`
+- Makes the site available at: `https://naortm.github.io/bayes-theorem/`
+
+The workflow is defined in `.github/workflows/build-and-deploy.yml` and runs on:
+- Push to `main` branch (builds and deploys)
+- Pull requests (builds only, no deployment)
+- Manual workflow dispatch
+
+### GitHub Pages Setup
+
+To enable GitHub Pages deployment:
+1. Go to repository Settings > Pages
+2. Set Source to "GitHub Actions"
+3. The site will be automatically deployed on the next push to `main`
+
 ## Project Structure
 
 - `src/pages` - route pages
