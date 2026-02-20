@@ -1,7 +1,8 @@
-﻿import { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import { scaleLinear } from "d3";
-import { toPercent } from "../utils/format";
+import SliderInput from "./SliderInput";
+import { roundTo, toPercent } from "../utils/format";
 
 const lensLabels = {
   area: "Area",
@@ -41,165 +42,210 @@ function AreaLens({ prior, pBGivenA, pBGivenNotA }) {
         <line x1={aWidth} y1="0" x2={aWidth} y2={height} stroke="var(--text)" strokeDasharray="4 4" />
       </svg>
       <figcaption>
-        Left block is <code>A</code>, dark strip is <code>A \cap B</code>, orange strip is <code>A^c \cap B</code>.
+        <code>A ∩ B</code> (teal) is numerator mass; <code>Aᶜ ∩ B</code> (orange) joins it in the denominator.
       </figcaption>
     </figure>
   );
 }
 
-AreaLens.propTypes = {
-  prior: PropTypes.number.isRequired,
-  pBGivenA: PropTypes.number.isRequired,
-  pBGivenNotA: PropTypes.number.isRequired
-};
-
-function TreeLens({ prior, pBGivenA, pBGivenNotA, posterior, evidence }) {
+function TreeLens({ prior, pBGivenA, pBGivenNotA, values }) {
   return (
     <div className="lens-text" aria-label="Tree model">
       <p>
-        Branch 1: <code>P(A)={toPercent(prior)}</code>, then <code>P(B|A)={toPercent(pBGivenA)}</code>
+        <code>P(A)={toPercent(prior)}</code>, <code>P(B|A)={toPercent(pBGivenA)}</code> → <code>P(A ∩ B)={toPercent(values.numerator)}</code>
       </p>
       <p>
-        Branch 2: <code>P(A^c)={toPercent(1 - prior)}</code>, then <code>P(B|A^c)={toPercent(pBGivenNotA)}</code>
+        <code>P(Aᶜ)={toPercent(1 - prior)}</code>, <code>P(B|Aᶜ)={toPercent(pBGivenNotA)}</code> → <code>P(Aᶜ ∩ B)={toPercent(values.altEvidenceMass)}</code>
       </p>
       <p>
-        Leaf totals: <code>P(B)={toPercent(evidence)}</code>, posterior <code>P(A|B)={toPercent(posterior)}</code>
+        Evidence total <code>P(B)={toPercent(values.denominator)}</code>, so <code>P(A|B)={toPercent(values.posterior)}</code>.
       </p>
     </div>
   );
 }
 
-TreeLens.propTypes = {
-  prior: PropTypes.number.isRequired,
-  pBGivenA: PropTypes.number.isRequired,
-  pBGivenNotA: PropTypes.number.isRequired,
-  posterior: PropTypes.number.isRequired,
-  evidence: PropTypes.number.isRequired
-};
-
-function MatrixLens({ counts }) {
+function MatrixLens({ counts, values }) {
   return (
-    <table className="matrix-table" aria-label="Confusion matrix style lens">
-      <caption>Counts per {counts.population.toLocaleString()}</caption>
-      <thead>
-        <tr>
-          <th scope="col"> </th>
-          <th scope="col">B</th>
-          <th scope="col">Not B</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <th scope="row">A</th>
-          <td>{Math.round(counts.aAndB).toLocaleString()}</td>
-          <td>{Math.round(counts.aAndNotB).toLocaleString()}</td>
-        </tr>
-        <tr>
-          <th scope="row">Not A</th>
-          <td>{Math.round(counts.notAAndB).toLocaleString()}</td>
-          <td>{Math.round(counts.notAAndNotB).toLocaleString()}</td>
-        </tr>
-      </tbody>
-    </table>
+    <>
+      <table className="matrix-table" aria-label="Confusion matrix style lens">
+        <caption>Counts per {counts.population.toLocaleString()}</caption>
+        <thead>
+          <tr>
+            <th scope="col"> </th>
+            <th scope="col">B</th>
+            <th scope="col">Not B</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">A</th>
+            <td>{Math.round(counts.aAndB).toLocaleString()}</td>
+            <td>{Math.round(counts.aAndNotB).toLocaleString()}</td>
+          </tr>
+          <tr>
+            <th scope="row">Not A</th>
+            <td>{Math.round(counts.notAAndB).toLocaleString()}</td>
+            <td>{Math.round(counts.notAAndNotB).toLocaleString()}</td>
+          </tr>
+        </tbody>
+      </table>
+      <p className="lens-footnote">
+        Matrix denominator is positive column total <code>{Math.round(counts.aAndB + counts.notAAndB).toLocaleString()}</code> = <code>P(B)</code>.
+        Numerator is <code>{Math.round(counts.aAndB).toLocaleString()}</code> = <code>P(A ∩ B)</code>.
+      </p>
+      <p className="lens-footnote">
+        Normalize: <code>{roundTo(values.posterior, 4)}</code> = <code>{Math.round(counts.aAndB).toLocaleString()}</code> / <code>{Math.round(counts.aAndB + counts.notAAndB).toLocaleString()}</code>.
+      </p>
+    </>
   );
 }
 
-MatrixLens.propTypes = {
-  counts: PropTypes.shape({
-    population: PropTypes.number.isRequired,
-    aAndB: PropTypes.number.isRequired,
-    aAndNotB: PropTypes.number.isRequired,
-    notAAndB: PropTypes.number.isRequired,
-    notAAndNotB: PropTypes.number.isRequired
-  }).isRequired
-};
-
-function OddsLens({ priorOdds, posteriorOdds, likelihoodRatio }) {
+function OddsLens({ values }) {
   return (
     <div className="lens-text" aria-label="Odds model">
       <p>
-        Prior odds: <code>{priorOdds.toFixed(3)}</code>
+        Prior odds: <code>{roundTo(values.priorOdds, 4)}</code>
       </p>
       <p>
-        Likelihood ratio: <code>{likelihoodRatio.toFixed(3)}</code>
+        Likelihood ratio: <code>{roundTo(values.lr, 4)}</code>
       </p>
       <p>
-        Posterior odds: <code>{posteriorOdds.toFixed(3)}</code>
+        Posterior odds: <code>{roundTo(values.posteriorOdds, 4)}</code>
       </p>
-      <p>Log-odds update: log posterior = log LR + log prior.</p>
+      <p>
+        <code>log O(A|B)=log LR+log O(A)</code> (same normalization result in odds space).
+      </p>
     </div>
   );
 }
 
-OddsLens.propTypes = {
-  priorOdds: PropTypes.number.isRequired,
-  posteriorOdds: PropTypes.number.isRequired,
-  likelihoodRatio: PropTypes.number.isRequired
-};
-
 export default function BayesLensPanel({ prior, pBGivenA, pBGivenNotA, population }) {
-  const [lens, setLens] = useState("area");
+  const [focusLens, setFocusLens] = useState("area");
+  const [scenario, setScenario] = useState({ prior, pBGivenA, pBGivenNotA });
 
   const values = useMemo(() => {
-    const numerator = prior * pBGivenA;
-    const denominator = numerator + (1 - prior) * pBGivenNotA;
+    const numerator = scenario.prior * scenario.pBGivenA;
+    const altEvidenceMass = (1 - scenario.prior) * scenario.pBGivenNotA;
+    const denominator = numerator + altEvidenceMass;
     const posterior = denominator === 0 ? 0 : numerator / denominator;
     const counts = {
       population,
       aAndB: population * numerator,
-      aAndNotB: population * prior * (1 - pBGivenA),
-      notAAndB: population * (1 - prior) * pBGivenNotA,
-      notAAndNotB: population * (1 - prior) * (1 - pBGivenNotA)
+      aAndNotB: population * scenario.prior * (1 - scenario.pBGivenA),
+      notAAndB: population * altEvidenceMass,
+      notAAndNotB: population * (1 - scenario.prior) * (1 - scenario.pBGivenNotA)
     };
-    const priorOdds = prior / Math.max(1 - prior, 1e-9);
-    const lr = pBGivenA / Math.max(pBGivenNotA, 1e-9);
+    const priorOdds = scenario.prior / Math.max(1 - scenario.prior, 1e-9);
+    const lr = scenario.pBGivenA / Math.max(scenario.pBGivenNotA, 1e-9);
     const posteriorOdds = priorOdds * lr;
+
     return {
+      numerator,
+      altEvidenceMass,
+      denominator,
       posterior,
-      evidence: denominator,
       counts,
       priorOdds,
       lr,
       posteriorOdds
     };
-  }, [prior, pBGivenA, pBGivenNotA, population]);
+  }, [population, scenario.pBGivenA, scenario.pBGivenNotA, scenario.prior]);
 
   return (
     <section className="card">
-      <h3>Four lenses, one numeric example</h3>
-      <div className="lens-tabs" role="tablist" aria-label="Bayes lens toggle">
+      <h3>Four lenses, one synchronized numeric scenario</h3>
+      <p>Adjust one scenario and inspect the same Bayes update through area, tree, matrix, and odds views.</p>
+
+      <div className="lens-controls" aria-label="Synchronized Bayes scenario controls">
+        <SliderInput
+          id="lens-prior"
+          label="P(A) prior"
+          min={0.01}
+          max={0.99}
+          step={0.01}
+          value={scenario.prior}
+          onChange={(value) => setScenario((prev) => ({ ...prev, prior: value }))}
+          display={toPercent(scenario.prior, 1)}
+        />
+        <SliderInput
+          id="lens-like-a"
+          label="P(B|A) likelihood"
+          min={0.01}
+          max={0.99}
+          step={0.01}
+          value={scenario.pBGivenA}
+          onChange={(value) => setScenario((prev) => ({ ...prev, pBGivenA: value }))}
+          display={toPercent(scenario.pBGivenA, 1)}
+        />
+        <SliderInput
+          id="lens-like-not-a"
+          label="P(B|A^c) alternative likelihood"
+          min={0.01}
+          max={0.99}
+          step={0.01}
+          value={scenario.pBGivenNotA}
+          onChange={(value) => setScenario((prev) => ({ ...prev, pBGivenNotA: value }))}
+          display={toPercent(scenario.pBGivenNotA, 1)}
+        />
+      </div>
+
+      <section className="bayes-breakdown" aria-label="Denominator-first Bayes breakdown">
+        <h4>Denominator-first Bayes breakdown</h4>
+        <p>
+          <strong>Numerator:</strong> <code>P(A ∩ B)=P(B|A)P(A)={toPercent(scenario.pBGivenA)}×{toPercent(scenario.prior)}={toPercent(values.numerator)}</code>
+        </p>
+        <p>
+          <strong>Denominator (evidence):</strong>{" "}
+          <code>
+            P(B)=P(B|A)P(A)+P(B|A^c)P(A^c)={toPercent(values.numerator)}+{toPercent(values.altEvidenceMass)}={toPercent(values.denominator)}
+          </code>
+        </p>
+        <p>
+          <strong>Normalize:</strong> <code>P(A|B)=P(A ∩ B)/P(B)={toPercent(values.posterior)}</code>
+        </p>
+      </section>
+
+      <div className="lens-tabs" role="tablist" aria-label="Focus lens toggle">
         {Object.entries(lensLabels).map(([key, label]) => (
           <button
             type="button"
             key={key}
             role="tab"
-            aria-selected={lens === key}
-            className={lens === key ? "active" : ""}
-            onClick={() => setLens(key)}
+            aria-selected={focusLens === key}
+            className={focusLens === key ? "active" : ""}
+            onClick={() => setFocusLens(key)}
           >
-            {label}
+            Focus: {label}
           </button>
         ))}
       </div>
 
-      {lens === "area" ? <AreaLens prior={prior} pBGivenA={pBGivenA} pBGivenNotA={pBGivenNotA} /> : null}
-      {lens === "tree" ? (
-        <TreeLens
-          prior={prior}
-          pBGivenA={pBGivenA}
-          pBGivenNotA={pBGivenNotA}
-          posterior={values.posterior}
-          evidence={values.evidence}
-        />
-      ) : null}
-      {lens === "matrix" ? <MatrixLens counts={values.counts} /> : null}
-      {lens === "odds" ? (
-        <OddsLens
-          priorOdds={values.priorOdds}
-          posteriorOdds={values.posteriorOdds}
-          likelihoodRatio={values.lr}
-        />
-      ) : null}
+      <div className="lens-grid">
+        <section className={`lens-card ${focusLens === "area" ? "active" : ""}`} aria-label="Area lens card">
+          <h4>Area lens</h4>
+          <AreaLens prior={scenario.prior} pBGivenA={scenario.pBGivenA} pBGivenNotA={scenario.pBGivenNotA} />
+        </section>
+
+        <section className={`lens-card ${focusLens === "tree" ? "active" : ""}`} aria-label="Tree lens card">
+          <h4>Tree lens</h4>
+          <TreeLens
+            prior={scenario.prior}
+            pBGivenA={scenario.pBGivenA}
+            pBGivenNotA={scenario.pBGivenNotA}
+            values={values}
+          />
+        </section>
+
+        <section className={`lens-card ${focusLens === "matrix" ? "active" : ""}`} aria-label="Matrix lens card">
+          <h4>Matrix lens</h4>
+          <MatrixLens counts={values.counts} values={values} />
+        </section>
+
+        <section className={`lens-card ${focusLens === "odds" ? "active" : ""}`} aria-label="Odds lens card">
+          <h4>Odds lens</h4>
+          <OddsLens values={values} />
+        </section>
+      </div>
     </section>
   );
 }
