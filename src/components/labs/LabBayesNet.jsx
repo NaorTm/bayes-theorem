@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import SliderInput from "../SliderInput";
 import { roundTo, toPercent } from "../../utils/format";
 import { MathDisplay } from "../MathText";
@@ -37,6 +37,11 @@ function matchesEvidence(assignment, evidence) {
   });
 }
 
+function computeInferenceSummary(evidence, params) {
+  let evidenceProbability = 0;
+  let rainJoint = 0;
+  let cloudyJoint = 0;
+  let sprinklerJoint = 0;
 function enumerateAll(evidence, params) {
   let denominator = 0;
   const numerators = { C: 0, S: 0, R: 0 };
@@ -46,6 +51,41 @@ function enumerateAll(evidence, params) {
       [false, true].forEach((R) => {
         [false, true].forEach((W) => {
           const assignment = { C, S, R, W };
+          if (!matchesEvidence(assignment, evidence)) {
+            return;
+          }
+
+          const joint = jointProbability(assignment, params);
+          evidenceProbability += joint;
+
+          if (R) {
+            rainJoint += joint;
+          }
+          if (C) {
+            cloudyJoint += joint;
+          }
+          if (S) {
+            sprinklerJoint += joint;
+          }
+        });
+      });
+    });
+  });
+
+  if (evidenceProbability === 0) {
+    return {
+      rain: 0,
+      cloudy: 0,
+      sprinkler: 0,
+      evidenceProbability: 0
+    };
+  }
+
+  return {
+    rain: rainJoint / evidenceProbability,
+    cloudy: cloudyJoint / evidenceProbability,
+    sprinkler: sprinklerJoint / evidenceProbability,
+    evidenceProbability
           if (matchesEvidence(assignment, evidence)) {
             const joint = jointProbability(assignment, params);
             denominator += joint;
@@ -100,6 +140,7 @@ export default function LabBayesNet() {
     W: "true"
   });
 
+  const posteriors = useMemo(() => computeInferenceSummary(evidence, params), [evidence, params]);
   const posteriors = useMemo(() => enumerateAll(evidence, params), [evidence, params]);
 
   const setParam = (name, value) => {
