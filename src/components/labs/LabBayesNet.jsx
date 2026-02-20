@@ -37,28 +37,34 @@ function matchesEvidence(assignment, evidence) {
   });
 }
 
-function enumeratePosterior(targetVar, evidence, params) {
-  let numerator = 0;
+function enumerateAll(evidence, params) {
   let denominator = 0;
+  const numerators = { C: 0, S: 0, R: 0 };
 
   [false, true].forEach((C) => {
     [false, true].forEach((S) => {
       [false, true].forEach((R) => {
         [false, true].forEach((W) => {
           const assignment = { C, S, R, W };
-          const joint = jointProbability(assignment, params);
           if (matchesEvidence(assignment, evidence)) {
+            const joint = jointProbability(assignment, params);
             denominator += joint;
-            if (assignment[targetVar]) {
-              numerator += joint;
-            }
+            if (C) numerators.C += joint;
+            if (S) numerators.S += joint;
+            if (R) numerators.R += joint;
           }
         });
       });
     });
   });
 
-  return denominator === 0 ? 0 : numerator / denominator;
+  const posterior = (num) => (denominator === 0 ? 0 : num / denominator);
+  return {
+    evidenceProbability: denominator,
+    cloudy: posterior(numerators.C),
+    sprinkler: posterior(numerators.S),
+    rain: posterior(numerators.R)
+  };
 }
 
 function EvidenceSelect({ label, value, onChange, id }) {
@@ -94,14 +100,7 @@ export default function LabBayesNet() {
     W: "true"
   });
 
-  const posteriors = useMemo(
-    () => ({
-      rain: enumeratePosterior("R", evidence, params),
-      cloudy: enumeratePosterior("C", evidence, params),
-      sprinkler: enumeratePosterior("S", evidence, params)
-    }),
-    [evidence, params]
-  );
+  const posteriors = useMemo(() => enumerateAll(evidence, params), [evidence, params]);
 
   const setParam = (name, value) => {
     setParams((prev) => ({ ...prev, [name]: value }));
@@ -110,7 +109,7 @@ export default function LabBayesNet() {
   return (
     <article className="card lab-card" aria-label="Lab 8 Bayes net playground">
       <h3>Lab 8: Bayes Net Playground</h3>
-      <p>Cloudy -> Rain, Cloudy -> Sprinkler, Rain and Sprinkler -> WetGrass. Inference is exact by enumeration.</p>
+      <p>Cloudy → Rain, Cloudy → Sprinkler, Rain and Sprinkler → WetGrass. Inference is exact by enumeration.</p>
 
       <div className="lab-grid">
         <div>
@@ -244,11 +243,14 @@ export default function LabBayesNet() {
             <p>
               <strong>P(Sprinkler|evidence)</strong>: {toPercent(posteriors.sprinkler, 2)}
             </p>
+            <p>
+              <strong>P(evidence)</strong>: {roundTo(posteriors.evidenceProbability, 4)}
+            </p>
           </div>
 
           <MathDisplay
-            math={`P(R\\mid e)=\\frac{\\sum_{c,s,w}P(c,s,R,w)}{\\sum_{c,s,r,w}P(c,s,r,w)}\\approx ${roundTo(
-              posteriors.rain,
+            math={`P(R\\mid e)=\\frac{P(R,e)}{P(e)}\\approx ${roundTo(posteriors.rain, 4)},\\quad P(e)=${roundTo(
+              posteriors.evidenceProbability,
               4
             )}`}
           />
