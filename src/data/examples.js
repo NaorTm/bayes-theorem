@@ -694,154 +694,419 @@
   },
 ];
 
-const additionalExampleSeeds = [
+const additionalExamples = [
   {
     id: "ex19",
     title: "Credit risk triage",
+    difficulty: "Intermediate",
     tags: ["finance", "multi-hypothesis"],
-    domain: "finance",
-    visual: "matrix",
-    note: "Three borrower categories require full denominator across 3 hypotheses."
+    problemMarkdown:
+      "Applicants are low-risk (0.5), medium-risk (0.35), high-risk (0.15). A thin-file flag occurs with probabilities 0.10, 0.35, 0.75 respectively. Compute P(high-risk|flag).",
+    variables: { priors: [0.5, 0.35, 0.15], likelihoods: [0.1, 0.35, 0.75] },
+    definitions: ["L,M,H: risk class", "F: thin-file flag"],
+    solutionSteps: [
+      {
+        title: "Compute denominator with 3 hypotheses",
+        explanationMarkdown: "Use total probability across all risk classes.",
+        mathLatex: "P(F)=0.10\\cdot0.50+0.35\\cdot0.35+0.75\\cdot0.15=0.285"
+      },
+      {
+        title: "Compute high-risk numerator",
+        explanationMarkdown: "Weight the high-risk likelihood by prior.",
+        mathLatex: "P(F\\mid H)P(H)=0.75\\cdot0.15=0.1125"
+      },
+      {
+        title: "Normalize",
+        explanationMarkdown: "Divide by total flag probability.",
+        mathLatex: "P(H\\mid F)=0.1125/0.285=0.3947"
+      }
+    ],
+    visuals: [{ widget: "matrix", params: { classes: 3 } }],
+    simulationSpec: { seed: 219, samplingFunction: "simulateCreditRiskFlag", trials: 80000 },
+    finalAnswer: {
+      numeric: "0.3947",
+      symbolic: "\\frac{P(F\\mid H)P(H)}{\\sum_{c\\in\\{L,M,H\\}}P(F\\mid c)P(c)}"
+    },
+    takeaway: "Three-way denominators prevent overconfident risk labeling."
   },
   {
     id: "ex20",
     title: "Cyber alert attribution",
+    difficulty: "Advanced",
     tags: ["security", "multi-hypothesis"],
-    domain: "security",
-    visual: "tree",
-    note: "Possible causes: malware, misconfig, user action."
+    problemMarkdown:
+      "A critical alert may come from malware (0.12), misconfiguration (0.55), or user error (0.33). Trigger probabilities are 0.85, 0.20, 0.10. Compute P(malware|alert).",
+    variables: { priors: [0.12, 0.55, 0.33], likelihoods: [0.85, 0.2, 0.1] },
+    definitions: ["M: malware", "C: misconfig", "U: user error", "A: critical alert"],
+    solutionSteps: [
+      {
+        title: "Evidence denominator",
+        explanationMarkdown: "Sum weighted trigger rates for all causes.",
+        mathLatex: "P(A)=0.85\\cdot0.12+0.20\\cdot0.55+0.10\\cdot0.33=0.245"
+      },
+      {
+        title: "Malware numerator",
+        explanationMarkdown: "Keep only malware branch mass.",
+        mathLatex: "P(A\\mid M)P(M)=0.85\\cdot0.12=0.102"
+      },
+      {
+        title: "Posterior",
+        explanationMarkdown: "Normalize to infer incident root cause.",
+        mathLatex: "P(M\\mid A)=0.102/0.245=0.4163"
+      }
+    ],
+    visuals: [{ widget: "tree", params: { branches: 3 } }],
+    simulationSpec: { seed: 220, samplingFunction: "simulateCyberAlertAttribution", trials: 120000 },
+    finalAnswer: {
+      numeric: "0.4163",
+      symbolic: "\\frac{0.85\\cdot0.12}{0.85\\cdot0.12+0.20\\cdot0.55+0.10\\cdot0.33}"
+    },
+    takeaway: "Even noisy operational causes must appear in the denominator."
   },
   {
     id: "ex21",
     title: "Machine state diagnostics",
+    difficulty: "Intermediate",
     tags: ["engineering", "multi-hypothesis"],
-    domain: "engineering",
-    visual: "sankey",
-    note: "Normal, degraded, failing states from sensor evidence."
+    problemMarkdown:
+      "Machine states are normal (0.70), degraded (0.22), failing (0.08). A vibration alarm appears with probabilities 0.05, 0.40, 0.90. Find P(failing|alarm).",
+    variables: { priors: [0.7, 0.22, 0.08], likelihoods: [0.05, 0.4, 0.9] },
+    definitions: ["N,D,F: state", "A: vibration alarm"],
+    solutionSteps: [
+      {
+        title: "Denominator by total probability",
+        explanationMarkdown: "Alarm can come from all three states.",
+        mathLatex: "P(A)=0.05\\cdot0.70+0.40\\cdot0.22+0.90\\cdot0.08=0.195"
+      },
+      {
+        title: "Failing numerator",
+        explanationMarkdown: "Use failing branch only.",
+        mathLatex: "P(A\\mid F)P(F)=0.90\\cdot0.08=0.072"
+      },
+      {
+        title: "Posterior failing probability",
+        explanationMarkdown: "Normalize branch mass by all alarm mass.",
+        mathLatex: "P(F\\mid A)=0.072/0.195=0.3692"
+      }
+    ],
+    visuals: [{ widget: "sankey", params: { classes: 3 } }],
+    simulationSpec: { seed: 221, samplingFunction: "simulateMachineDiagnostics", trials: 100000 },
+    finalAnswer: {
+      numeric: "0.3692",
+      symbolic: "\\frac{P(A\\mid F)P(F)}{\\sum_{s\\in\\{N,D,F\\}}P(A\\mid s)P(s)}"
+    },
+    takeaway: "Posterior risk can rise sharply even when failure prior is small."
   },
   {
     id: "ex22",
     title: "Loan default evidence update",
+    difficulty: "Intermediate",
     tags: ["finance", "odds"],
-    domain: "finance",
-    visual: "odds",
-    note: "Use odds and Bayes factor from payment anomaly."
+    problemMarkdown:
+      "Prior default probability is 0.08. A payment anomaly has likelihood ratio 4.5 for default vs non-default. Compute posterior default probability using odds form.",
+    variables: { prior: 0.08, bayesFactor: 4.5 },
+    definitions: ["D: default", "E: payment anomaly"],
+    solutionSteps: [
+      {
+        title: "Convert prior to odds",
+        explanationMarkdown: "Odds form multiplies by Bayes factor.",
+        mathLatex: "O(D)=0.08/0.92=0.08696"
+      },
+      {
+        title: "Update odds",
+        explanationMarkdown: "Posterior odds equals prior odds times likelihood ratio.",
+        mathLatex: "O(D\\mid E)=4.5\\cdot0.08696=0.3913"
+      },
+      {
+        title: "Convert back to probability",
+        explanationMarkdown: "Probability is odds over one plus odds.",
+        mathLatex: "P(D\\mid E)=0.3913/(1+0.3913)=0.2813"
+      }
+    ],
+    visuals: [{ widget: "odds", params: { likelihoodRatio: 4.5 } }],
+    simulationSpec: { seed: 222, samplingFunction: "simulateLoanDefaultOdds", trials: 70000 },
+    finalAnswer: {
+      numeric: "0.2813",
+      symbolic: "\\frac{BF\\cdot O(D)}{1+BF\\cdot O(D)}"
+    },
+    takeaway: "Odds form makes Bayes-factor updates quick and interpretable."
   },
   {
     id: "ex23",
     title: "Airport screening",
+    difficulty: "Intermediate",
     tags: ["security", "base-rate"],
-    domain: "security",
-    visual: "matrix",
-    note: "Rare threat prevalence with imperfect scan."
+    problemMarkdown:
+      "Threat prevalence is 0.0005. Scanner sensitivity is 0.97 and false positive rate is 0.015. Find P(threat|positive scan).",
+    variables: { prevalence: 0.0005, sensitivity: 0.97, fpr: 0.015 },
+    definitions: ["T: true threat", "+: positive scan"],
+    solutionSteps: [
+      {
+        title: "Compute evidence",
+        explanationMarkdown: "Positive scans come from true and false positives.",
+        mathLatex: "P(+)=0.97\\cdot0.0005+0.015\\cdot0.9995=0.0154775"
+      },
+      {
+        title: "True-positive numerator",
+        explanationMarkdown: "Weight sensitivity by threat prevalence.",
+        mathLatex: "P(+\\mid T)P(T)=0.97\\cdot0.0005=0.000485"
+      },
+      {
+        title: "Posterior",
+        explanationMarkdown: "Normalize by total positive rate.",
+        mathLatex: "P(T\\mid +)=0.000485/0.0154775=0.0313"
+      }
+    ],
+    visuals: [{ widget: "matrix", params: { population: 100000 } }],
+    simulationSpec: { seed: 223, samplingFunction: "simulateAirportScreening", trials: 200000 },
+    finalAnswer: {
+      numeric: "0.0313",
+      symbolic: "\\frac{0.97\\cdot0.0005}{0.97\\cdot0.0005+0.015\\cdot0.9995}"
+    },
+    takeaway: "Low prevalence keeps most positives false despite strong sensitivity."
   },
   {
     id: "ex24",
     title: "Smart thermostat occupancy",
+    difficulty: "Intermediate",
     tags: ["everyday", "sensor"],
-    domain: "everyday",
-    visual: "tree",
-    note: "Infer occupancy from motion and CO2 readings."
+    problemMarkdown:
+      "Home occupancy prior is 0.35. Motion trigger probability is 0.88 if occupied and 0.18 if empty. Compute P(occupied|motion).",
+    variables: { prior: 0.35, likeOcc: 0.88, likeEmpty: 0.18 },
+    definitions: ["O: occupied", "M: motion trigger"],
+    solutionSteps: [
+      {
+        title: "Denominator",
+        explanationMarkdown: "Motion can happen when occupied or empty.",
+        mathLatex: "P(M)=0.88\\cdot0.35+0.18\\cdot0.65=0.425"
+      },
+      {
+        title: "Numerator",
+        explanationMarkdown: "Occupied-motion branch mass.",
+        mathLatex: "P(M\\mid O)P(O)=0.88\\cdot0.35=0.308"
+      },
+      {
+        title: "Posterior occupancy",
+        explanationMarkdown: "Normalize occupied branch.",
+        mathLatex: "P(O\\mid M)=0.308/0.425=0.7247"
+      }
+    ],
+    visuals: [{ widget: "tree", params: { stages: 2 } }],
+    simulationSpec: { seed: 224, samplingFunction: "simulateOccupancySensor", trials: 90000 },
+    finalAnswer: {
+      numeric: "0.7247",
+      symbolic: "\\frac{0.88\\cdot0.35}{0.88\\cdot0.35+0.18\\cdot0.65}"
+    },
+    takeaway: "A moderately noisy sensor can still yield strong posterior occupancy."
   },
   {
     id: "ex25",
     title: "Market regime inference",
-    tags: ["finance", "continuous"],
-    domain: "finance",
-    visual: "density",
-    note: "Posterior over bull/bear/sideways with returns signal."
+    difficulty: "Advanced",
+    tags: ["finance", "continuous", "multi-hypothesis"],
+    problemMarkdown:
+      "Regimes: bull(0.45), neutral(0.35), bear(0.20). Observed daily return x=−1.2%. Densities at x are 10.2, 24.0, 31.5 for bull, neutral, bear. Compute P(bear|x).",
+    variables: { priors: [0.45, 0.35, 0.2], densities: [10.2, 24, 31.5] },
+    definitions: ["B,N,R: market regime", "X: return"],
+    solutionSteps: [
+      {
+        title: "Continuous evidence",
+        explanationMarkdown: "Use weighted density sum, not probability mass.",
+        mathLatex: "f_X(x)=10.2\\cdot0.45+24.0\\cdot0.35+31.5\\cdot0.20=19.29"
+      },
+      {
+        title: "Bear numerator",
+        explanationMarkdown: "Weight bear density by prior.",
+        mathLatex: "f(x\\mid R)P(R)=31.5\\cdot0.20=6.30"
+      },
+      {
+        title: "Posterior bear regime",
+        explanationMarkdown: "Normalize by total weighted density.",
+        mathLatex: "P(R\\mid x)=6.30/19.29=0.3266"
+      }
+    ],
+    visuals: [{ widget: "density", params: { classes: 3 } }],
+    simulationSpec: { seed: 225, samplingFunction: "simulateMarketRegime", trials: 100000 },
+    finalAnswer: {
+      numeric: "0.3266",
+      symbolic: "\\frac{f(x\\mid R)P(R)}{\\sum_j f(x\\mid H_j)P(H_j)}"
+    },
+    takeaway: "Continuous Bayes still depends on the same denominator logic."
   },
   {
     id: "ex26",
     title: "Anomaly triage in logs",
+    difficulty: "Intermediate",
     tags: ["security", "classification"],
-    domain: "security",
-    visual: "odds",
-    note: "Update incident probability from log signatures."
+    problemMarkdown:
+      "Prior incident probability is 0.02. A rare signature appears with probability 0.70 in incidents and 0.04 in benign traffic. Compute P(incident|signature).",
+    variables: { prior: 0.02, likeIncident: 0.7, likeBenign: 0.04 },
+    definitions: ["I: true incident", "S: signature appears"],
+    solutionSteps: [
+      {
+        title: "Denominator",
+        explanationMarkdown: "Signature comes from incident and benign traffic.",
+        mathLatex: "P(S)=0.70\\cdot0.02+0.04\\cdot0.98=0.0532"
+      },
+      {
+        title: "Incident numerator",
+        explanationMarkdown: "Incident branch contributes true signal mass.",
+        mathLatex: "P(S\\mid I)P(I)=0.70\\cdot0.02=0.014"
+      },
+      {
+        title: "Posterior",
+        explanationMarkdown: "Normalize to get incident probability after alert.",
+        mathLatex: "P(I\\mid S)=0.014/0.0532=0.2632"
+      }
+    ],
+    visuals: [{ widget: "odds", params: { logScale: true } }],
+    simulationSpec: { seed: 226, samplingFunction: "simulateLogAnomaly", trials: 120000 },
+    finalAnswer: {
+      numeric: "0.2632",
+      symbolic: "\\frac{0.70\\cdot0.02}{0.70\\cdot0.02+0.04\\cdot0.98}"
+    },
+    takeaway: "Good signatures can still leave nontrivial false alert volume."
   },
   {
     id: "ex27",
     title: "Battery health from voltage",
+    difficulty: "Advanced",
     tags: ["engineering", "continuous"],
-    domain: "engineering",
-    visual: "density",
-    note: "Gaussian prior and noisy voltage measurement."
+    problemMarkdown:
+      "Battery state of charge prior is Normal(60, 12²). Measurement model is X|theta ~ Normal(theta, 8²). Observed voltage implies x=72. Compute posterior mean and variance.",
+    variables: { mu0: 60, sigma0: 12, sigma: 8, x: 72 },
+    definitions: ["theta: true state of charge", "X: noisy measurement"],
+    solutionSteps: [
+      {
+        title: "Posterior precision",
+        explanationMarkdown: "Add prior and likelihood precisions.",
+        mathLatex: "\\sigma_n^2=1/(1/12^2+1/8^2)=44.3077"
+      },
+      {
+        title: "Posterior mean",
+        explanationMarkdown: "Weighted average by precision.",
+        mathLatex: "\\mu_n=\\sigma_n^2(60/12^2+72/8^2)=68.3077"
+      },
+      {
+        title: "Interpret shrinkage",
+        explanationMarkdown: "Posterior moves toward the observation with reduced uncertainty.",
+        mathLatex: "\\theta\\mid x\\sim\\mathcal{N}(68.3077,44.3077)"
+      }
+    ],
+    visuals: [{ widget: "density", params: { family: "gaussian-update" } }],
+    simulationSpec: { seed: 227, samplingFunction: "simulateBatteryMeasurement", trials: 60000 },
+    finalAnswer: {
+      numeric: "mean 68.3077, variance 44.3077",
+      symbolic: "\\mu_n=\\frac{\\mu_0/\\sigma_0^2+x/\\sigma^2}{1/\\sigma_0^2+1/\\sigma^2}"
+    },
+    takeaway: "Conjugate Gaussian updates produce closed-form posteriors instantly."
   },
   {
     id: "ex28",
     title: "Weather umbrella decision",
-    tags: ["everyday", "decision"],
-    domain: "everyday",
-    visual: "odds",
-    note: "Posterior rain probability with asymmetric inconvenience costs."
+    difficulty: "Beginner",
+    tags: ["everyday", "decision", "odds"],
+    problemMarkdown:
+      "Forecast app shows a dark-cloud signal. Prior rain chance is 0.25. Signal likelihoods are 0.80 if rain and 0.30 if no rain. Should you carry umbrella if wet-cost is 12 and carry-cost is 2?",
+    variables: { prior: 0.25, likeRain: 0.8, likeDry: 0.3, wetCost: 12, carryCost: 2 },
+    definitions: ["R: rain", "D: dark-cloud signal"],
+    solutionSteps: [
+      {
+        title: "Posterior rain probability",
+        explanationMarkdown: "Compute Bayes update from signal.",
+        mathLatex: "P(R\\mid D)=\\frac{0.80\\cdot0.25}{0.80\\cdot0.25+0.30\\cdot0.75}=0.4706"
+      },
+      {
+        title: "Expected loss if no umbrella",
+        explanationMarkdown: "No-umbrella loss equals posterior rain chance times wet cost.",
+        mathLatex: "L_{no}=0.4706\\cdot12=5.6472"
+      },
+      {
+        title: "Choose lower-loss action",
+        explanationMarkdown: "Carry umbrella cost is fixed at 2.",
+        mathLatex: "L_{carry}=2<5.6472\\Rightarrow \\text{carry umbrella}"
+      }
+    ],
+    visuals: [{ widget: "odds", params: { costs: true } }],
+    simulationSpec: { seed: 228, samplingFunction: "simulateUmbrellaDecision", trials: 50000 },
+    finalAnswer: {
+      numeric: "Carry umbrella",
+      symbolic: "Choose carry when C_{carry}<P(R\\mid D)\\cdot C_{wet}"
+    },
+    takeaway: "Bayesian decisions depend on posterior and utility, not probability alone."
   },
   {
     id: "ex29",
     title: "Inventory demand class",
+    difficulty: "Intermediate",
     tags: ["operations", "classification"],
-    domain: "operations",
-    visual: "tree",
-    note: "Infer demand regime from early sales signal."
+    problemMarkdown:
+      "A product is low-demand (0.50), medium-demand (0.30), or high-demand (0.20). Early sales spike probability is 0.20, 0.45, 0.80 respectively. Compute P(high-demand|spike).",
+    variables: { priors: [0.5, 0.3, 0.2], likelihoods: [0.2, 0.45, 0.8] },
+    definitions: ["L,M,H: demand class", "S: early sales spike"],
+    solutionSteps: [
+      {
+        title: "Evidence denominator",
+        explanationMarkdown: "Spike can be generated by each demand class.",
+        mathLatex: "P(S)=0.20\\cdot0.50+0.45\\cdot0.30+0.80\\cdot0.20=0.395"
+      },
+      {
+        title: "High-demand numerator",
+        explanationMarkdown: "Weighted high-demand spike mass.",
+        mathLatex: "P(S\\mid H)P(H)=0.80\\cdot0.20=0.16"
+      },
+      {
+        title: "Posterior",
+        explanationMarkdown: "Normalize and interpret for stocking decision.",
+        mathLatex: "P(H\\mid S)=0.16/0.395=0.4051"
+      }
+    ],
+    visuals: [{ widget: "tree", params: { classes: 3 } }],
+    simulationSpec: { seed: 229, samplingFunction: "simulateInventoryClass", trials: 75000 },
+    finalAnswer: {
+      numeric: "0.4051",
+      symbolic: "\\frac{0.80\\cdot0.20}{0.20\\cdot0.50+0.45\\cdot0.30+0.80\\cdot0.20}"
+    },
+    takeaway: "Early sales signals can meaningfully re-rank demand scenarios."
   },
   {
     id: "ex30",
     title: "Fraud ring detection",
-    tags: ["security", "network"],
-    domain: "security",
-    visual: "matrix",
-    note: "Posterior suspect class from multiple weak indicators."
+    difficulty: "Advanced",
+    tags: ["security", "network", "multi-hypothesis"],
+    problemMarkdown:
+      "A suspicious transfer could be from solo fraud (0.25), coordinated ring (0.10), or benign anomaly (0.65). Link-analysis hit probabilities are 0.35, 0.90, 0.08. Compute P(ring|link-hit).",
+    variables: { priors: [0.25, 0.1, 0.65], likelihoods: [0.35, 0.9, 0.08] },
+    definitions: ["S: solo fraud", "R: ring fraud", "B: benign", "L: link-analysis hit"],
+    solutionSteps: [
+      {
+        title: "Compute denominator",
+        explanationMarkdown: "Link-hit mass from all three explanations.",
+        mathLatex: "P(L)=0.35\\cdot0.25+0.90\\cdot0.10+0.08\\cdot0.65=0.2295"
+      },
+      {
+        title: "Ring numerator",
+        explanationMarkdown: "Keep ring pathway contribution.",
+        mathLatex: "P(L\\mid R)P(R)=0.90\\cdot0.10=0.09"
+      },
+      {
+        title: "Posterior ring probability",
+        explanationMarkdown: "Normalize to estimate coordination risk.",
+        mathLatex: "P(R\\mid L)=0.09/0.2295=0.3922"
+      }
+    ],
+    visuals: [{ widget: "matrix", params: { classes: 3 } }],
+    simulationSpec: { seed: 230, samplingFunction: "simulateFraudRingSignal", trials: 150000 },
+    finalAnswer: {
+      numeric: "0.3922",
+      symbolic: "\\frac{P(L\\mid R)P(R)}{P(L\\mid S)P(S)+P(L\\mid R)P(R)+P(L\\mid B)P(B)}"
+    },
+    takeaway: "Strong link evidence can elevate ring risk without making it certain."
   }
 ];
-
-const additionalExamples = additionalExampleSeeds.map((seed, index) => ({
-  id: seed.id,
-  title: seed.title,
-  difficulty: index % 2 === 0 ? "Intermediate" : "Advanced",
-  tags: seed.tags,
-  problemMarkdown:
-    `Scenario in ${seed.domain}: apply Bayes theorem with explicit denominator and interpret posterior.`,
-  variables: {
-    prior: "domain-specific",
-    likelihoods: "provided in prompt"
-  },
-  definitions: ["H_i: competing hypotheses", "E: observed evidence"],
-  solutionSteps: [
-    {
-      title: "Define events",
-      explanationMarkdown:
-        "Map the word problem into hypotheses H_i and evidence E.",
-      mathLatex: "\\{H_i\\}\\text{ partition the space}"
-    },
-    {
-      title: "Compute denominator",
-      explanationMarkdown:
-        "Use total probability across all hypotheses.",
-      mathLatex: "P(E)=\\sum_i P(E\\mid H_i)P(H_i)"
-    },
-    {
-      title: "Normalize target hypothesis",
-      explanationMarkdown:
-        "Compute posterior and provide a practical interpretation.",
-      mathLatex: "P(H_k\\mid E)=\\frac{P(E\\mid H_k)P(H_k)}{\\sum_i P(E\\mid H_i)P(H_i)}"
-    }
-  ],
-  visuals: [{ widget: seed.visual, params: { template: true } }],
-  simulationSpec: {
-    seed: 200 + index,
-    samplingFunction: "genericBayesMonteCarlo",
-    trials: 50000
-  },
-  finalAnswer: {
-    numeric: "Computed in walkthrough",
-    symbolic:
-      "P(H_k\\mid E)=\\frac{P(E\\mid H_k)P(H_k)}{\\sum_i P(E\\mid H_i)P(H_i)}"
-  },
-  takeaway: seed.note
-}));
 
 export const examples = [...richExamples, ...additionalExamples];
 
 export function getExampleById(exampleId) {
   return examples.find((example) => example.id === exampleId);
 }
-

@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import SliderInput from "../SliderInput";
 import { roundTo, toPercent } from "../../utils/format";
 import { MathDisplay } from "../MathText";
@@ -37,28 +37,53 @@ function matchesEvidence(assignment, evidence) {
   });
 }
 
-function enumeratePosterior(targetVar, evidence, params) {
-  let numerator = 0;
-  let denominator = 0;
+function computeInferenceSummary(evidence, params) {
+  let evidenceProbability = 0;
+  let rainJoint = 0;
+  let cloudyJoint = 0;
+  let sprinklerJoint = 0;
 
   [false, true].forEach((C) => {
     [false, true].forEach((S) => {
       [false, true].forEach((R) => {
         [false, true].forEach((W) => {
           const assignment = { C, S, R, W };
+          if (!matchesEvidence(assignment, evidence)) {
+            return;
+          }
+
           const joint = jointProbability(assignment, params);
-          if (matchesEvidence(assignment, evidence)) {
-            denominator += joint;
-            if (assignment[targetVar]) {
-              numerator += joint;
-            }
+          evidenceProbability += joint;
+
+          if (R) {
+            rainJoint += joint;
+          }
+          if (C) {
+            cloudyJoint += joint;
+          }
+          if (S) {
+            sprinklerJoint += joint;
           }
         });
       });
     });
   });
 
-  return denominator === 0 ? 0 : numerator / denominator;
+  if (evidenceProbability === 0) {
+    return {
+      rain: 0,
+      cloudy: 0,
+      sprinkler: 0,
+      evidenceProbability: 0
+    };
+  }
+
+  return {
+    rain: rainJoint / evidenceProbability,
+    cloudy: cloudyJoint / evidenceProbability,
+    sprinkler: sprinklerJoint / evidenceProbability,
+    evidenceProbability
+  };
 }
 
 function EvidenceSelect({ label, value, onChange, id }) {
@@ -94,14 +119,7 @@ export default function LabBayesNet() {
     W: "true"
   });
 
-  const posteriors = useMemo(
-    () => ({
-      rain: enumeratePosterior("R", evidence, params),
-      cloudy: enumeratePosterior("C", evidence, params),
-      sprinkler: enumeratePosterior("S", evidence, params)
-    }),
-    [evidence, params]
-  );
+  const posteriors = useMemo(() => computeInferenceSummary(evidence, params), [evidence, params]);
 
   const setParam = (name, value) => {
     setParams((prev) => ({ ...prev, [name]: value }));
@@ -110,7 +128,7 @@ export default function LabBayesNet() {
   return (
     <article className="card lab-card" aria-label="Lab 8 Bayes net playground">
       <h3>Lab 8: Bayes Net Playground</h3>
-      <p>Cloudy -> Rain, Cloudy -> Sprinkler, Rain and Sprinkler -> WetGrass. Inference is exact by enumeration.</p>
+      <p>Cloudy → Rain, Cloudy → Sprinkler, Rain and Sprinkler → WetGrass. Inference is exact by enumeration.</p>
 
       <div className="lab-grid">
         <div>
@@ -244,11 +262,14 @@ export default function LabBayesNet() {
             <p>
               <strong>P(Sprinkler|evidence)</strong>: {toPercent(posteriors.sprinkler, 2)}
             </p>
+            <p>
+              <strong>P(evidence)</strong>: {roundTo(posteriors.evidenceProbability, 4)}
+            </p>
           </div>
 
           <MathDisplay
-            math={`P(R\\mid e)=\\frac{\\sum_{c,s,w}P(c,s,R,w)}{\\sum_{c,s,r,w}P(c,s,r,w)}\\approx ${roundTo(
-              posteriors.rain,
+            math={`P(R\\mid e)=\\frac{P(R,e)}{P(e)}\\approx ${roundTo(posteriors.rain, 4)},\\quad P(e)=${roundTo(
+              posteriors.evidenceProbability,
               4
             )}`}
           />
