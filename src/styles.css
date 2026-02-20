@@ -435,6 +435,52 @@ textarea {
   margin: 0.8rem 0 0;
 }
 
+.lens-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.bayes-breakdown {
+  border: 1px solid var(--border);
+  border-radius: 0.8rem;
+  padding: 0.75rem;
+  margin: 0.85rem 0;
+  background: color-mix(in srgb, var(--card) 75%, var(--bg-alt));
+}
+
+.bayes-breakdown p {
+  margin: 0.25rem 0;
+}
+
+.lens-grid {
+  margin-top: 0.8rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.lens-card {
+  border: 1px solid var(--border);
+  border-radius: 0.8rem;
+  padding: 0.7rem;
+  background: color-mix(in srgb, var(--card) 80%, var(--bg-alt));
+}
+
+.lens-card.active {
+  border-width: 2px;
+  border-color: var(--accent-strong);
+}
+
+.lens-card h4 {
+  margin-bottom: 0.35rem;
+}
+
+.lens-footnote {
+  margin: 0.35rem 0;
+  color: var(--muted-text);
+}
+
 .filter-row {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -523,7 +569,9 @@ details summary {
   .result-grid.two-col,
   .home-grid,
   .filter-row,
-  .result-grid {
+  .result-grid,
+  .lens-controls,
+  .lens-grid {
     grid-template-columns: 1fr;
   }
 }
