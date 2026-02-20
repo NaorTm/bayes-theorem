@@ -61,6 +61,25 @@ function enumeratePosterior(targetVar, evidence, params) {
   return denominator === 0 ? 0 : numerator / denominator;
 }
 
+function probabilityOfEvidence(evidence, params) {
+  let probability = 0;
+
+  [false, true].forEach((C) => {
+    [false, true].forEach((S) => {
+      [false, true].forEach((R) => {
+        [false, true].forEach((W) => {
+          const assignment = { C, S, R, W };
+          if (matchesEvidence(assignment, evidence)) {
+            probability += jointProbability(assignment, params);
+          }
+        });
+      });
+    });
+  });
+
+  return probability;
+}
+
 function EvidenceSelect({ label, value, onChange, id }) {
   return (
     <label htmlFor={id} className="input-row">
@@ -98,7 +117,8 @@ export default function LabBayesNet() {
     () => ({
       rain: enumeratePosterior("R", evidence, params),
       cloudy: enumeratePosterior("C", evidence, params),
-      sprinkler: enumeratePosterior("S", evidence, params)
+      sprinkler: enumeratePosterior("S", evidence, params),
+      evidenceProbability: probabilityOfEvidence(evidence, params)
     }),
     [evidence, params]
   );
@@ -110,7 +130,7 @@ export default function LabBayesNet() {
   return (
     <article className="card lab-card" aria-label="Lab 8 Bayes net playground">
       <h3>Lab 8: Bayes Net Playground</h3>
-      <p>Cloudy -> Rain, Cloudy -> Sprinkler, Rain and Sprinkler -> WetGrass. Inference is exact by enumeration.</p>
+      <p>Cloudy → Rain, Cloudy → Sprinkler, Rain and Sprinkler → WetGrass. Inference is exact by enumeration.</p>
 
       <div className="lab-grid">
         <div>
@@ -244,11 +264,14 @@ export default function LabBayesNet() {
             <p>
               <strong>P(Sprinkler|evidence)</strong>: {toPercent(posteriors.sprinkler, 2)}
             </p>
+            <p>
+              <strong>P(evidence)</strong>: {roundTo(posteriors.evidenceProbability, 4)}
+            </p>
           </div>
 
           <MathDisplay
-            math={`P(R\\mid e)=\\frac{\\sum_{c,s,w}P(c,s,R,w)}{\\sum_{c,s,r,w}P(c,s,r,w)}\\approx ${roundTo(
-              posteriors.rain,
+            math={`P(R\\mid e)=\\frac{P(R,e)}{P(e)}\\approx ${roundTo(posteriors.rain, 4)},\\quad P(e)=${roundTo(
+              posteriors.evidenceProbability,
               4
             )}`}
           />
