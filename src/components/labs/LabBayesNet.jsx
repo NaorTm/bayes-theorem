@@ -37,47 +37,34 @@ function matchesEvidence(assignment, evidence) {
   });
 }
 
-function enumeratePosterior(targetVar, evidence, params) {
-  let numerator = 0;
+function enumerateAll(evidence, params) {
   let denominator = 0;
+  const numerators = { C: 0, S: 0, R: 0 };
 
   [false, true].forEach((C) => {
     [false, true].forEach((S) => {
       [false, true].forEach((R) => {
         [false, true].forEach((W) => {
           const assignment = { C, S, R, W };
-          const joint = jointProbability(assignment, params);
           if (matchesEvidence(assignment, evidence)) {
+            const joint = jointProbability(assignment, params);
             denominator += joint;
-            if (assignment[targetVar]) {
-              numerator += joint;
-            }
+            if (C) numerators.C += joint;
+            if (S) numerators.S += joint;
+            if (R) numerators.R += joint;
           }
         });
       });
     });
   });
 
-  return denominator === 0 ? 0 : numerator / denominator;
-}
-
-function probabilityOfEvidence(evidence, params) {
-  let probability = 0;
-
-  [false, true].forEach((C) => {
-    [false, true].forEach((S) => {
-      [false, true].forEach((R) => {
-        [false, true].forEach((W) => {
-          const assignment = { C, S, R, W };
-          if (matchesEvidence(assignment, evidence)) {
-            probability += jointProbability(assignment, params);
-          }
-        });
-      });
-    });
-  });
-
-  return probability;
+  const posterior = (num) => (denominator === 0 ? 0 : num / denominator);
+  return {
+    evidenceProbability: denominator,
+    cloudy: posterior(numerators.C),
+    sprinkler: posterior(numerators.S),
+    rain: posterior(numerators.R)
+  };
 }
 
 function EvidenceSelect({ label, value, onChange, id }) {
@@ -113,15 +100,7 @@ export default function LabBayesNet() {
     W: "true"
   });
 
-  const posteriors = useMemo(
-    () => ({
-      rain: enumeratePosterior("R", evidence, params),
-      cloudy: enumeratePosterior("C", evidence, params),
-      sprinkler: enumeratePosterior("S", evidence, params),
-      evidenceProbability: probabilityOfEvidence(evidence, params)
-    }),
-    [evidence, params]
-  );
+  const posteriors = useMemo(() => enumerateAll(evidence, params), [evidence, params]);
 
   const setParam = (name, value) => {
     setParams((prev) => ({ ...prev, [name]: value }));
