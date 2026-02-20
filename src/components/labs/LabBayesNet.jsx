@@ -42,6 +42,9 @@ function computeInferenceSummary(evidence, params) {
   let rainJoint = 0;
   let cloudyJoint = 0;
   let sprinklerJoint = 0;
+function enumerateAll(evidence, params) {
+  let denominator = 0;
+  const numerators = { C: 0, S: 0, R: 0 };
 
   [false, true].forEach((C) => {
     [false, true].forEach((S) => {
@@ -83,6 +86,24 @@ function computeInferenceSummary(evidence, params) {
     cloudy: cloudyJoint / evidenceProbability,
     sprinkler: sprinklerJoint / evidenceProbability,
     evidenceProbability
+          if (matchesEvidence(assignment, evidence)) {
+            const joint = jointProbability(assignment, params);
+            denominator += joint;
+            if (C) numerators.C += joint;
+            if (S) numerators.S += joint;
+            if (R) numerators.R += joint;
+          }
+        });
+      });
+    });
+  });
+
+  const posterior = (num) => (denominator === 0 ? 0 : num / denominator);
+  return {
+    evidenceProbability: denominator,
+    cloudy: posterior(numerators.C),
+    sprinkler: posterior(numerators.S),
+    rain: posterior(numerators.R)
   };
 }
 
@@ -120,6 +141,7 @@ export default function LabBayesNet() {
   });
 
   const posteriors = useMemo(() => computeInferenceSummary(evidence, params), [evidence, params]);
+  const posteriors = useMemo(() => enumerateAll(evidence, params), [evidence, params]);
 
   const setParam = (name, value) => {
     setParams((prev) => ({ ...prev, [name]: value }));
