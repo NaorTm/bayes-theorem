@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react";
+﻿import { Suspense, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import ProgressSidebar from "../components/ProgressSidebar";
 import QuizBlock from "../components/QuizBlock";
@@ -165,7 +165,9 @@ export default function TutorialPage() {
                 <summary>
                   {lab.id.toUpperCase()} - {lab.title}
                 </summary>
-                <LabComponent />
+                <Suspense fallback={<div className="card">Loading lab…</div>}>
+                  <LabComponent />
+                </Suspense>
               </details>
             );
           })}

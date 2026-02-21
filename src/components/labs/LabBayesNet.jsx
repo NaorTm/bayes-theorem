@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import SliderInput from "../SliderInput";
 import { roundTo, toPercent } from "../../utils/format";
 import { MathDisplay } from "../MathText";
+import { simulateEventFrequency } from "../../utils/rng";
+import SimulationAgreementPanel from "./SimulationAgreementPanel";
 
 function probBinary(value, probabilityTrue) {
   return value ? probabilityTrue : 1 - probabilityTrue;
@@ -118,8 +120,14 @@ export default function LabBayesNet() {
     R: "unknown",
     W: "true"
   });
+  const [seed, setSeed] = useState(808);
+  const [simTrials, setSimTrials] = useState(7000);
 
   const posteriors = useMemo(() => computeInferenceSummary(evidence, params), [evidence, params]);
+  const simulation = useMemo(
+    () => simulateEventFrequency({ probability: posteriors.rain, trials: simTrials, seed }),
+    [posteriors.rain, seed, simTrials]
+  );
 
   const setParam = (name, value) => {
     setParams((prev) => ({ ...prev, [name]: value }));
@@ -223,6 +231,19 @@ export default function LabBayesNet() {
             onChange={(value) => setParam("pWetGivenNeither", value)}
             display={toPercent(params.pWetGivenNeither, 1)}
           />
+          <label className="input-row" htmlFor="lab8-seed">
+            <span>Simulation seed</span>
+            <input id="lab8-seed" type="number" value={seed} onChange={(event) => setSeed(Number(event.target.value) || 808)} />
+          </label>
+          <SliderInput
+            id="lab8-sim-trials"
+            label="Simulation trials"
+            min={500}
+            max={50000}
+            step={500}
+            value={simTrials}
+            onChange={setSimTrials}
+          />
         </div>
 
         <div>
@@ -272,6 +293,13 @@ export default function LabBayesNet() {
               posteriors.evidenceProbability,
               4
             )}`}
+          />
+          <SimulationAgreementPanel
+            label="P(Rain|evidence)"
+            theoretical={posteriors.rain}
+            estimate={simulation.estimate}
+            trials={simulation.trials}
+            tolerance={0.03}
           />
         </div>
       </div>

@@ -33,3 +33,35 @@ export function runBernoulliTrialSeries(p, n, seed = 12345) {
     results
   };
 }
+
+export function simulateEventFrequency({ probability, trials = 5000, seed = 12345 }) {
+  const random = createSeededRng(seed);
+  let hits = 0;
+  for (let i = 0; i < trials; i += 1) {
+    hits += random() < probability ? 1 : 0;
+  }
+  return {
+    trials,
+    hits,
+    estimate: hits / Math.max(trials, 1)
+  };
+}
+
+function gaussianSample(random, mean = 0, std = 1) {
+  const u1 = Math.max(random(), 1e-12);
+  const u2 = random();
+  const z0 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+  return mean + std * z0;
+}
+
+export function simulateNormalMean({ mean, std, trials = 5000, seed = 12345 }) {
+  const random = createSeededRng(seed);
+  let sum = 0;
+  for (let i = 0; i < trials; i += 1) {
+    sum += gaussianSample(random, mean, std);
+  }
+  return {
+    trials,
+    estimate: sum / Math.max(trials, 1)
+  };
+}

@@ -481,6 +481,26 @@ textarea {
   color: var(--muted-text);
 }
 
+.sim-agreement {
+  border: 1px dashed var(--border);
+  border-radius: 0.7rem;
+  padding: 0.65rem;
+  margin-top: 0.6rem;
+  background: color-mix(in srgb, var(--card) 80%, var(--bg-alt));
+}
+
+.sim-agreement p {
+  margin: 0.2rem 0;
+}
+
+.sim-pass {
+  color: #0f8f53;
+}
+
+.sim-fail {
+  color: #b84f26;
+}
+
 .filter-row {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
