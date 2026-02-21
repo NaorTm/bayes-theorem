@@ -42,7 +42,7 @@ function AreaLens({ prior, pBGivenA, pBGivenNotA }) {
         <line x1={aWidth} y1="0" x2={aWidth} y2={height} stroke="var(--text)" strokeDasharray="4 4" />
       </svg>
       <figcaption>
-        <code>A ∩ B</code> (teal) is numerator mass; <code>Aᶜ ∩ B</code> (orange) joins it in the denominator.
+        <code>A \cap B</code> (teal) is numerator mass; <code>A^c \cap B</code> (orange) joins it in the denominator.
       </figcaption>
     </figure>
   );
@@ -52,10 +52,10 @@ function TreeLens({ prior, pBGivenA, pBGivenNotA, values }) {
   return (
     <div className="lens-text" aria-label="Tree model">
       <p>
-        <code>P(A)={toPercent(prior)}</code>, <code>P(B|A)={toPercent(pBGivenA)}</code> → <code>P(A ∩ B)={toPercent(values.numerator)}</code>
+        <code>P(A)={toPercent(prior)}</code>, <code>P(B|A)={toPercent(pBGivenA)}</code> → <code>P(A \cap B)={toPercent(values.numerator)}</code>
       </p>
       <p>
-        <code>P(Aᶜ)={toPercent(1 - prior)}</code>, <code>P(B|Aᶜ)={toPercent(pBGivenNotA)}</code> → <code>P(Aᶜ ∩ B)={toPercent(values.altEvidenceMass)}</code>
+        <code>P(A^c)={toPercent(1 - prior)}</code>, <code>P(B|A^c)={toPercent(pBGivenNotA)}</code> → <code>P(A^c \cap B)={toPercent(values.altEvidenceMass)}</code>
       </p>
       <p>
         Evidence total <code>P(B)={toPercent(values.denominator)}</code>, so <code>P(A|B)={toPercent(values.posterior)}</code>.
@@ -91,7 +91,7 @@ function MatrixLens({ counts, values }) {
       </table>
       <p className="lens-footnote">
         Matrix denominator is positive column total <code>{Math.round(counts.aAndB + counts.notAAndB).toLocaleString()}</code> = <code>P(B)</code>.
-        Numerator is <code>{Math.round(counts.aAndB).toLocaleString()}</code> = <code>P(A ∩ B)</code>.
+        Numerator is <code>{Math.round(counts.aAndB).toLocaleString()}</code> = <code>P(A \cap B)</code>.
       </p>
       <p className="lens-footnote">
         Normalize: <code>{roundTo(values.posterior, 4)}</code> = <code>{Math.round(counts.aAndB).toLocaleString()}</code> / <code>{Math.round(counts.aAndB + counts.notAAndB).toLocaleString()}</code>.
@@ -113,7 +113,7 @@ function OddsLens({ values }) {
         Posterior odds: <code>{roundTo(values.posteriorOdds, 4)}</code>
       </p>
       <p>
-        <code>log O(A|B)=log LR+log O(A)</code> (same normalization result in odds space).
+        <code>\log O(A|B)=\log LR+\log O(A)</code> (same normalization result in odds space).
       </p>
     </div>
   );
@@ -192,7 +192,7 @@ export default function BayesLensPanel({ prior, pBGivenA, pBGivenNotA, populatio
       <section className="bayes-breakdown" aria-label="Denominator-first Bayes breakdown">
         <h4>Denominator-first Bayes breakdown</h4>
         <p>
-          <strong>Numerator:</strong> <code>P(A ∩ B)=P(B|A)P(A)={toPercent(scenario.pBGivenA)}×{toPercent(scenario.prior)}={toPercent(values.numerator)}</code>
+          <strong>Numerator:</strong> <code>P(A \cap B)=P(B|A)P(A)={toPercent(scenario.pBGivenA)}×{toPercent(scenario.prior)}={toPercent(values.numerator)}</code>
         </p>
         <p>
           <strong>Denominator (evidence):</strong>{" "}
@@ -201,7 +201,7 @@ export default function BayesLensPanel({ prior, pBGivenA, pBGivenNotA, populatio
           </code>
         </p>
         <p>
-          <strong>Normalize:</strong> <code>P(A|B)=P(A ∩ B)/P(B)={toPercent(values.posterior)}</code>
+          <strong>Normalize:</strong> <code>P(A|B)=P(A\cap B)/P(B)={toPercent(values.posterior)}</code>
         </p>
       </section>
 
