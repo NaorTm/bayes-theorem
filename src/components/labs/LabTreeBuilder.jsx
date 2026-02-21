@@ -3,16 +3,24 @@ import SliderInput from "../SliderInput";
 import { multiHypothesisPosterior } from "../../utils/bayes";
 import { normalizeWeights, roundTo, toPercent } from "../../utils/format";
 import { MathDisplay } from "../MathText";
+import { simulateEventFrequency } from "../../utils/rng";
+import SimulationAgreementPanel from "./SimulationAgreementPanel";
 
 export default function LabTreeBuilder() {
   const [priors, setPriors] = useState([0.5, 0.3, 0.2]);
   const [likelihoods, setLikelihoods] = useState([0.9, 0.4, 0.1]);
+  const [seed, setSeed] = useState(202);
+  const [simTrials, setSimTrials] = useState(6000);
 
   const normalizedPriors = useMemo(() => normalizeWeights(priors), [priors]);
 
   const computed = useMemo(
     () => multiHypothesisPosterior(normalizedPriors, likelihoods),
     [normalizedPriors, likelihoods]
+  );
+  const simulation = useMemo(
+    () => simulateEventFrequency({ probability: computed.posteriors[0], trials: simTrials, seed }),
+    [computed.posteriors, seed, simTrials]
   );
 
   const updatePrior = (index, value) => {
@@ -56,6 +64,19 @@ export default function LabTreeBuilder() {
               />
             </div>
           ))}
+          <label className="input-row" htmlFor="lab2-seed">
+            <span>Simulation seed</span>
+            <input id="lab2-seed" type="number" value={seed} onChange={(event) => setSeed(Number(event.target.value) || 202)} />
+          </label>
+          <SliderInput
+            id="lab2-sim-trials"
+            label="Simulation trials"
+            min={500}
+            max={50000}
+            step={500}
+            value={simTrials}
+            onChange={setSimTrials}
+          />
         </div>
 
         <div>
@@ -78,6 +99,12 @@ export default function LabTreeBuilder() {
               computed.evidence,
               4
             )}`}
+          />
+          <SimulationAgreementPanel
+            label="P(H1|E)"
+            theoretical={computed.posteriors[0]}
+            estimate={simulation.estimate}
+            trials={simulation.trials}
           />
         </div>
       </div>

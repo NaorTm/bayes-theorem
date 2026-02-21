@@ -3,12 +3,16 @@ import SliderInput from "../SliderInput";
 import { confusionMatrixFromRates } from "../../utils/bayes";
 import { roundTo, toPercent } from "../../utils/format";
 import { MathDisplay } from "../MathText";
+import { simulateEventFrequency } from "../../utils/rng";
+import SimulationAgreementPanel from "./SimulationAgreementPanel";
 
 export default function LabConfusionMatrix() {
   const [prevalence, setPrevalence] = useState(0.01);
   const [sensitivity, setSensitivity] = useState(0.95);
   const [specificity, setSpecificity] = useState(0.9);
   const [population, setPopulation] = useState(10000);
+  const [seed, setSeed] = useState(303);
+  const [simTrials, setSimTrials] = useState(8000);
 
   const matrix = useMemo(
     () =>
@@ -19,6 +23,10 @@ export default function LabConfusionMatrix() {
         population
       }),
     [prevalence, sensitivity, specificity, population]
+  );
+  const simulation = useMemo(
+    () => simulateEventFrequency({ probability: matrix.posteriorGivenPositive, trials: simTrials, seed }),
+    [matrix.posteriorGivenPositive, seed, simTrials]
   );
 
   return (
@@ -70,6 +78,19 @@ export default function LabConfusionMatrix() {
               onChange={(event) => setPopulation(Number(event.target.value) || 10000)}
             />
           </label>
+          <label className="input-row" htmlFor="lab3-seed">
+            <span>Simulation seed</span>
+            <input id="lab3-seed" type="number" value={seed} onChange={(event) => setSeed(Number(event.target.value) || 303)} />
+          </label>
+          <SliderInput
+            id="lab3-sim-trials"
+            label="Simulation trials"
+            min={500}
+            max={50000}
+            step={500}
+            value={simTrials}
+            onChange={setSimTrials}
+          />
         </div>
 
         <div>
@@ -116,6 +137,12 @@ export default function LabConfusionMatrix() {
               matrix.posteriorGivenPositive,
               4
             )}`}
+          />
+          <SimulationAgreementPanel
+            label="P(Disease|+)"
+            theoretical={matrix.posteriorGivenPositive}
+            estimate={simulation.estimate}
+            trials={simulation.trials}
           />
         </div>
       </div>

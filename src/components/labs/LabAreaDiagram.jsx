@@ -1,8 +1,10 @@
-﻿import { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import SliderInput from "../SliderInput";
 import { bayesPosterior } from "../../utils/bayes";
 import { roundTo, toPercent } from "../../utils/format";
 import { MathDisplay } from "../MathText";
+import { simulateEventFrequency } from "../../utils/rng";
+import SimulationAgreementPanel from "./SimulationAgreementPanel";
 
 export default function LabAreaDiagram() {
   const [pA, setPA] = useState(0.01);
@@ -10,6 +12,8 @@ export default function LabAreaDiagram() {
   const [pBGivenNotA, setPBGivenNotA] = useState(0.08);
   const [mode, setMode] = useState("probabilities");
   const [population, setPopulation] = useState(10000);
+  const [seed, setSeed] = useState(101);
+  const [simTrials, setSimTrials] = useState(6000);
 
   const computed = useMemo(() => {
     const result = bayesPosterior(pA, pBGivenA, pBGivenNotA);
@@ -25,6 +29,11 @@ export default function LabAreaDiagram() {
       counts
     };
   }, [pA, pBGivenA, pBGivenNotA, population]);
+
+  const simulation = useMemo(
+    () => simulateEventFrequency({ probability: computed.posterior, trials: simTrials, seed }),
+    [computed.posterior, seed, simTrials]
+  );
 
   const displayValue = (probability, count) => {
     if (mode === "counts") {
@@ -86,6 +95,19 @@ export default function LabAreaDiagram() {
               onChange={(event) => setPopulation(Number(event.target.value) || 10000)}
             />
           </label>
+          <label className="input-row" htmlFor="lab1-seed">
+            <span>Simulation seed</span>
+            <input id="lab1-seed" type="number" value={seed} onChange={(event) => setSeed(Number(event.target.value) || 101)} />
+          </label>
+          <SliderInput
+            id="lab1-sim-trials"
+            label="Simulation trials"
+            min={500}
+            max={50000}
+            step={500}
+            value={simTrials}
+            onChange={setSimTrials}
+          />
           <fieldset className="mode-toggle">
             <legend>Display mode</legend>
             <label>
@@ -140,7 +162,7 @@ export default function LabAreaDiagram() {
               <strong>AnB</strong>: {displayValue(pA * pBGivenA, computed.counts.aAndB)}
             </p>
             <p>
-              <strong>A?nB</strong>: {displayValue((1 - pA) * pBGivenNotA, computed.counts.notAAndB)}
+              <strong>A? nB</strong>: {displayValue((1 - pA) * pBGivenNotA, computed.counts.notAAndB)}
             </p>
             <p>
               <strong>P(B)</strong>: {mode === "counts" ? Math.round(population * computed.evidence).toLocaleString() : toPercent(computed.evidence, 2)}
@@ -154,6 +176,13 @@ export default function LabAreaDiagram() {
               pBGivenA,
               3
             )}\\cdot ${roundTo(pA, 3)}}{${roundTo(computed.evidence, 4)}}=${roundTo(computed.posterior, 4)}`}
+          />
+          <SimulationAgreementPanel
+            label="P(A|B)"
+            theoretical={computed.posterior}
+            estimate={simulation.estimate}
+            trials={simulation.trials}
+            tolerance={0.02}
           />
         </div>
       </div>

@@ -6,6 +6,7 @@ import { betaCredibleInterval, betaPdf, linspace } from "../../utils/math";
 import { runBernoulliTrialSeries } from "../../utils/rng";
 import { roundTo, toPercent } from "../../utils/format";
 import { MathDisplay } from "../MathText";
+import SimulationAgreementPanel from "./SimulationAgreementPanel";
 
 function DensityPlot({ prior, posterior }) {
   const width = 360;
@@ -171,6 +172,13 @@ export default function LabBetaBinomial() {
 
           <MathDisplay
             math={`\\text{Posterior}=\\text{Beta}(\\alpha+k,\\beta+n-k)=\\text{Beta}(${posterior.alpha},${posterior.beta})`}
+          />
+          <SimulationAgreementPanel
+            label="Posterior mean"
+            theoretical={posteriorMean}
+            estimate={simulation.successes / Math.max(simTrials, 1)}
+            trials={simTrials}
+            tolerance={0.08}
           />
         </div>
       </div>

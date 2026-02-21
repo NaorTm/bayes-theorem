@@ -1,11 +1,13 @@
-﻿import LabAreaDiagram from "./LabAreaDiagram";
-import LabTreeBuilder from "./LabTreeBuilder";
-import LabConfusionMatrix from "./LabConfusionMatrix";
-import LabOddsBayesFactor from "./LabOddsBayesFactor";
-import LabBetaBinomial from "./LabBetaBinomial";
-import LabGaussianUpdater from "./LabGaussianUpdater";
-import LabNaiveBayesText from "./LabNaiveBayesText";
-import LabBayesNet from "./LabBayesNet";
+import { lazy } from "react";
+
+const LabAreaDiagram = lazy(() => import("./LabAreaDiagram"));
+const LabTreeBuilder = lazy(() => import("./LabTreeBuilder"));
+const LabConfusionMatrix = lazy(() => import("./LabConfusionMatrix"));
+const LabOddsBayesFactor = lazy(() => import("./LabOddsBayesFactor"));
+const LabBetaBinomial = lazy(() => import("./LabBetaBinomial"));
+const LabGaussianUpdater = lazy(() => import("./LabGaussianUpdater"));
+const LabNaiveBayesText = lazy(() => import("./LabNaiveBayesText"));
+const LabBayesNet = lazy(() => import("./LabBayesNet"));
 
 export const labs = [
   {
