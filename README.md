@@ -1,84 +1,108 @@
-# Bayes' Theorem Tutorial Website
+# Bayes Theorem Tutorial Website
 
-Interactive educational website for learning Bayes' theorem deeply and intuitively.
+Interactive React + Vite website for learning Bayes theorem with intuition, math rigor, worked examples, and interactive labs.
 
-## What It Includes
-
-- Full tutorial track with prerequisites and modules `A` to `J`
-- 8 interactive visual labs:
-  - Area diagram
-  - Tree builder
-  - Confusion matrix playground
-  - Odds / Bayes factor updater
-  - Beta-Binomial updater
-  - Gaussian-Gaussian updater
-  - Naive Bayes text classifier
-  - Bayes net playground
-- Example library with:
-  - 30 total examples
-  - 18 rich step-by-step fully written examples
-- Practice section with required problem counts:
-  - Level 1: 12
-  - Level 2: 14
-  - Level 3: 14
-  - Level 4: 12
-  - Level 5: 10
+This project is implemented to follow the requirements in `AGENTS.md`, including:
+- Tutorial modules `P` and `A` through `J`
+- 8 visual labs
+- 30 examples (18 rich step-by-step examples)
+- 5 practice levels with required counts
 - Glossary and references
-- Light/dark mode
 - KaTeX math rendering
-- Seeded reproducible simulation utilities
+- Seeded simulations
 
-## Stack
+## Quick Start
 
-- React + Vite
-- React Router
-- KaTeX (`react-katex`)
-- D3
+Prerequisites:
+- Node.js 18+ (Node.js 20+ recommended)
+- npm
 
-## Getting Started
+Install and run:
 
 ```bash
 npm install
 npm run dev
 ```
 
-App will run at the local Vite URL shown in terminal.
-
-## Build
+Build and preview production output:
 
 ```bash
 npm run build
 npm run preview
 ```
 
+## Scripts
+
+- `npm run dev`: start Vite dev server
+- `npm run build`: production build to `dist/`
+- `npm run preview`: preview built output
+
 ## Deployment
 
-This project includes a GitHub Actions workflow that automatically:
-- Builds the site on every push to `main` and pull requests
-- Deploys the built site to GitHub Pages when changes are pushed to `main`
-- Makes the site available at: `https://naortm.github.io/bayes-theorem/`
+GitHub Actions workflow is available at:
 
-The workflow is defined in `.github/workflows/build-and-deploy.yml` and runs on:
-- Push to `main` branch (builds and deploys)
-- Pull requests (builds only, no deployment)
-- Manual workflow dispatch
+- `.github/workflows/build-and-deploy.yml`
 
-### GitHub Pages Setup
+Behavior:
 
-To enable GitHub Pages deployment:
-1. Go to repository Settings > Pages
-2. Set Source to "GitHub Actions"
-3. The site will be automatically deployed on the next push to `main`
+- On push to `main`: build and deploy to GitHub Pages
+- On pull request to `main`: build only
+- Manual trigger supported via workflow dispatch
+
+GitHub Pages base path is configured in `vite.config.js` for Actions builds.
+
+## Documentation
+
+- Project docs index: `docs/README.md`
+- Architecture: `docs/ARCHITECTURE.md`
+- Content authoring and data model: `docs/CONTENT_GUIDE.md`
+- Development workflow: `docs/DEVELOPMENT.md`
+- AGENTS acceptance mapping: `docs/AGENTS_ACCEPTANCE.md`
+
+## Feature Coverage Snapshot
+
+- Tutorial modules: `11` total (`P`, `A`-`J`)
+- Visual labs: `8`
+- Example library: `30` examples (`18` rich examples + `12` additional examples)
+- Practice: `62` problems across 5 levels (`12`, `14`, `14`, `12`, `10`)
+
+## Tech Stack
+
+- React 18
+- React Router 6
+- Vite 5
+- KaTeX via `react-katex`
+- D3
 
 ## Project Structure
 
-- `src/pages` - route pages
-- `src/components` - shared UI and lab components
-- `src/components/labs` - all visual labs
-- `src/data` - tutorial, examples, practice, glossary, references
-- `src/utils` - Bayes math, RNG, formatting helpers
+```text
+src/
+  components/
+    labs/                  # Lab 1..8 interactive components
+  data/
+    tutorialModules.js     # Module P, A..J content
+    examples.json          # Canonical examples dataset
+    examples.js            # Thin export wrapper for examples.json
+    practice.js            # Generated practice levels/problems
+    glossary.js
+    references.js
+  pages/
+    HomePage.jsx
+    TutorialPage.jsx
+    VisualLabsPage.jsx
+    ExampleLibraryPage.jsx
+    PracticePage.jsx
+    GlossaryPage.jsx
+    ReferencesPage.jsx
+  utils/
+    bayes.js               # Core probability and update math
+    math.js                # PDF/CDF/numeric helpers
+    rng.js                 # Seeded RNG + simulation helpers
+```
 
 ## Notes
 
-- Example dataset is available in both `src/data/examples.js` and `src/data/examples.json`.
-- Simulations are designed to be seedable for consistent demo runs.
+- `examples.json` is the canonical examples source.
+- Manual chunk splitting is configured in `vite.config.js` for `react`, `d3`, and `katex`-related dependencies.
+- `node_modules/` and `dist/` are ignored by `.gitignore`.

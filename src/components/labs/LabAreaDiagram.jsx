@@ -159,10 +159,10 @@ export default function LabAreaDiagram() {
           </svg>
           <div className="result-grid">
             <p>
-              <strong>AnB</strong>: {displayValue(pA * pBGivenA, computed.counts.aAndB)}
+              <strong>A cap B</strong>: {displayValue(pA * pBGivenA, computed.counts.aAndB)}
             </p>
             <p>
-              <strong>A? nB</strong>: {displayValue((1 - pA) * pBGivenNotA, computed.counts.notAAndB)}
+              <strong>A^c cap B</strong>: {displayValue((1 - pA) * pBGivenNotA, computed.counts.notAAndB)}
             </p>
             <p>
               <strong>P(B)</strong>: {mode === "counts" ? Math.round(population * computed.evidence).toLocaleString() : toPercent(computed.evidence, 2)}

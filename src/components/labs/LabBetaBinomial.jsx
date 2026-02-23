@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { line, max, scaleLinear } from "d3";
 import SliderInput from "../SliderInput";
 import { betaPosterior } from "../../utils/bayes";

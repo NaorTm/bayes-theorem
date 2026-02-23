@@ -1,6 +1,18 @@
-﻿import { Link } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { tutorialModules } from "../data/tutorialModules";
+import { examples } from "../data/examples";
+import { practiceLevels, totalPracticeProblemCount } from "../data/practice";
+import { labs } from "../components/labs";
+
+function countRichExamples() {
+  return examples.filter((example) => Number(example.id.replace("ex", "")) <= 18).length;
+}
 
 export default function HomePage() {
+  const richExamples = countRichExamples();
+  const moduleCount = tutorialModules.filter((module) => module.id !== "P").length;
+  const practiceLevelCount = practiceLevels.length;
+
   return (
     <section className="home-page">
       <div className="hero card">
@@ -45,6 +57,36 @@ export default function HomePage() {
           </ul>
         </article>
       </div>
+
+      <article className="card">
+        <h3>Coverage Snapshot</h3>
+        <dl className="kv-grid home-metrics">
+          <div>
+            <dt>Tutorial modules A-J</dt>
+            <dd>{moduleCount}</dd>
+          </div>
+          <div>
+            <dt>Visual labs</dt>
+            <dd>{labs.length}</dd>
+          </div>
+          <div>
+            <dt>Examples total</dt>
+            <dd>{examples.length}</dd>
+          </div>
+          <div>
+            <dt>Rich worked examples</dt>
+            <dd>{richExamples}</dd>
+          </div>
+          <div>
+            <dt>Practice levels</dt>
+            <dd>{practiceLevelCount}</dd>
+          </div>
+          <div>
+            <dt>Practice problems</dt>
+            <dd>{totalPracticeProblemCount}</dd>
+          </div>
+        </dl>
+      </article>
     </section>
   );
 }

@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import SliderInput from "../SliderInput";
 import { confusionMatrixFromRates } from "../../utils/bayes";
 import { roundTo, toPercent } from "../../utils/format";
@@ -110,7 +110,7 @@ export default function LabConfusionMatrix() {
                 <td>{Math.round(matrix.falsePositive).toLocaleString()}</td>
               </tr>
               <tr>
-                <th scope="row">Test -</th>
+                <th scope="row">Test {"\u2212"}</th>
                 <td>{Math.round(matrix.falseNegative).toLocaleString()}</td>
                 <td>{Math.round(matrix.trueNegative).toLocaleString()}</td>
               </tr>
@@ -128,7 +128,7 @@ export default function LabConfusionMatrix() {
               <strong>P(Disease|+)</strong>: {toPercent(matrix.posteriorGivenPositive, 2)}
             </p>
             <p>
-              <strong>P(Disease|-)</strong>: {toPercent(matrix.posteriorGivenNegative, 2)}
+              <strong>P(Disease|{"\u2212"})</strong>: {toPercent(matrix.posteriorGivenNegative, 2)}
             </p>
           </div>
 

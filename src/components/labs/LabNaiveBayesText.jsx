@@ -75,7 +75,7 @@ export default function LabNaiveBayesText() {
       <div className="word-table">
         {analysis.rows.map((row) => (
           <p key={row.word}>
-            <strong>{row.word}</strong> ({row.present ? "present" : "absent"}) → log contrib spam {roundTo(row.contribSpam, 3)}, ham {roundTo(row.contribHam, 3)}
+            <strong>{row.word}</strong> ({row.present ? "present" : "absent"}) {"->"} log contrib spam {roundTo(row.contribSpam, 3)}, ham {roundTo(row.contribHam, 3)}
           </p>
         ))}
       </div>

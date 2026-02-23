@@ -52,10 +52,10 @@ function TreeLens({ prior, pBGivenA, pBGivenNotA, values }) {
   return (
     <div className="lens-text" aria-label="Tree model">
       <p>
-        <code>P(A)={toPercent(prior)}</code>, <code>P(B|A)={toPercent(pBGivenA)}</code> → <code>P(A \cap B)={toPercent(values.numerator)}</code>
+        <code>P(A)={toPercent(prior)}</code>, <code>P(B|A)={toPercent(pBGivenA)}</code> {"->"} <code>P(A \cap B)={toPercent(values.numerator)}</code>
       </p>
       <p>
-        <code>P(A^c)={toPercent(1 - prior)}</code>, <code>P(B|A^c)={toPercent(pBGivenNotA)}</code> → <code>P(A^c \cap B)={toPercent(values.altEvidenceMass)}</code>
+        <code>P(A^c)={toPercent(1 - prior)}</code>, <code>P(B|A^c)={toPercent(pBGivenNotA)}</code> {"->"} <code>P(A^c \cap B)={toPercent(values.altEvidenceMass)}</code>
       </p>
       <p>
         Evidence total <code>P(B)={toPercent(values.denominator)}</code>, so <code>P(A|B)={toPercent(values.posterior)}</code>.
@@ -192,7 +192,7 @@ export default function BayesLensPanel({ prior, pBGivenA, pBGivenNotA, populatio
       <section className="bayes-breakdown" aria-label="Denominator-first Bayes breakdown">
         <h4>Denominator-first Bayes breakdown</h4>
         <p>
-          <strong>Numerator:</strong> <code>P(A \cap B)=P(B|A)P(A)={toPercent(scenario.pBGivenA)}×{toPercent(scenario.prior)}={toPercent(values.numerator)}</code>
+          <strong>Numerator:</strong> <code>P(A \cap B)=P(B|A)P(A)={toPercent(scenario.pBGivenA)}x{toPercent(scenario.prior)}={toPercent(values.numerator)}</code>
         </p>
         <p>
           <strong>Denominator (evidence):</strong>{" "}

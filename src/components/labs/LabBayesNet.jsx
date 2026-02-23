@@ -136,7 +136,10 @@ export default function LabBayesNet() {
   return (
     <article className="card lab-card" aria-label="Lab 8 Bayes net playground">
       <h3>Lab 8: Bayes Net Playground</h3>
-      <p>Cloudy → Rain, Cloudy → Sprinkler, Rain and Sprinkler → WetGrass. Inference is exact by enumeration.</p>
+      <p>
+        Cloudy {"->"} Rain, Cloudy {"->"} Sprinkler, Rain and Sprinkler {"->"} WetGrass.
+        Inference is exact by enumeration.
+      </p>
 
       <div className="lab-grid">
         <div>

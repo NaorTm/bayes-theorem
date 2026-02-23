@@ -1,6 +1,14 @@
-﻿import { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { examples } from "../data/examples";
 import { MathDisplay } from "../components/MathText";
+import ExampleVisualPreview from "../components/ExampleVisualPreview";
+
+function formatVariableValue(value) {
+  if (typeof value === "number") {
+    return Number.isInteger(value) ? value.toString() : value.toFixed(4);
+  }
+  return String(value);
+}
 
 export default function ExampleLibraryPage() {
   const [query, setQuery] = useState("");
@@ -18,13 +26,13 @@ export default function ExampleLibraryPage() {
   const filtered = useMemo(
     () =>
       examples.filter((example) => {
+        const normalizedQuery = query.toLowerCase().trim();
         const matchesQuery =
-          query.trim().length === 0 ||
-          example.title.toLowerCase().includes(query.toLowerCase()) ||
-          example.problemMarkdown.toLowerCase().includes(query.toLowerCase());
+          normalizedQuery.length === 0 ||
+          example.title.toLowerCase().includes(normalizedQuery) ||
+          example.problemMarkdown.toLowerCase().includes(normalizedQuery);
 
-        const matchesDifficulty =
-          difficulty === "All" || example.difficulty === difficulty;
+        const matchesDifficulty = difficulty === "All" || example.difficulty === difficulty;
         const matchesTag = tag === "All" || example.tags.includes(tag);
 
         return matchesQuery && matchesDifficulty && matchesTag;
@@ -99,6 +107,20 @@ export default function ExampleLibraryPage() {
             <strong>Definitions:</strong> {example.definitions.join("; ")}
           </p>
 
+          {Object.entries(example.variables || {}).length ? (
+            <section className="variables-block">
+              <h4>Variables</h4>
+              <dl className="kv-grid">
+                {Object.entries(example.variables).map(([key, value]) => (
+                  <div key={`${example.id}-${key}`}>
+                    <dt>{key}</dt>
+                    <dd>{formatVariableValue(value)}</dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+          ) : null}
+
           <section>
             <h4>Solution Steps</h4>
             {example.solutionSteps.map((step) => (
@@ -110,13 +132,23 @@ export default function ExampleLibraryPage() {
             ))}
           </section>
 
+          <ExampleVisualPreview visual={example.visuals?.[0]} />
           <p>
             <strong>Visual mapping:</strong> {example.visuals.map((item) => item.widget).join(", ")}
           </p>
-          <p>
-            <strong>Simulation:</strong> seed={example.simulationSpec.seed}, method={" "}
-            {example.simulationSpec.samplingFunction}
-          </p>
+
+          <section className="variables-block">
+            <h4>Simulation Check (Seeded)</h4>
+            <dl className="kv-grid">
+              {Object.entries(example.simulationSpec || {}).map(([key, value]) => (
+                <div key={`${example.id}-sim-${key}`}>
+                  <dt>{key}</dt>
+                  <dd>{String(value)}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+
           <p>
             <strong>Final answer:</strong> {example.finalAnswer.numeric}
           </p>

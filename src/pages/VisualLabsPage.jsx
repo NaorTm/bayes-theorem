@@ -1,4 +1,4 @@
-﻿import { Suspense } from "react";
+import { Suspense } from "react";
 import { labs } from "../components/labs";
 
 export default function VisualLabsPage() {
@@ -19,7 +19,7 @@ export default function VisualLabsPage() {
             <p className="lab-kicker">
               {lab.id.toUpperCase()} - {lab.description}
             </p>
-            <Suspense fallback={<div className="card">Loading lab…</div>}>
+            <Suspense fallback={<div className="card">Loading lab...</div>}>
               <LabComponent />
             </Suspense>
           </section>

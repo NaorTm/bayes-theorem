@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import SliderInput from "../SliderInput";
 import { multiHypothesisPosterior } from "../../utils/bayes";
 import { normalizeWeights, roundTo, toPercent } from "../../utils/format";

@@ -1,4 +1,4 @@
-﻿export function createSeededRng(seed = 12345) {
+export function createSeededRng(seed = 12345) {
   let t = seed >>> 0;
   return function random() {
     t += 0x6d2b79f5;
